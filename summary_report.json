@@ -1,0 +1,17 @@
+{
+    "total_urls": 3,
+    "total_404_urls": 2,
+    "blacklisted_urls": 2,
+    "blacklisted_urls_details": [
+        {
+            "url": "http://malicious-site.com/page1",
+            "status": "404",
+            "count": 1
+        },
+        {
+            "url": "http://blacklisteddomain.com/page3",
+            "status": "404",
+            "count": 1
+        }
+    ]
+}
