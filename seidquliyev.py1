@@ -1,0 +1,82 @@
+import re
+# access_log.txt faylını yarat
+access_log_content = """192.168.1.100 - - [05/Dec/2024:09:15:10 +0000] "GET http://malicious-site.com/page1 HTTP/1.1" 404 4321
+192.168.1.101 - - [05/Dec/2024:09:16:20 +0000] "GET http://example.com/page2 HTTP/1.1" 200 5432
+192.168.1.102 - - [05/Dec/2024:09:17:30 +0000] "GET http://blacklisteddomain.com/page3 HTTP/1.1" 404 1234
+192.168.1.103 - - [05/Dec/2024:09:18:40 +0000] "POST http://malicious-site.com/login HTTP/1.1" 404 2345"""
+
+# Faylı yaz
+import csv
+
+from collections import Counter
+
+# access_log.txt faylını oxuyun
+with open("access_log.txt", "r", encoding="utf-8") as log_file:
+    logs = log_file.readlines()
+
+# Regex şablonu ilə URL və status kodlarını çıxarın
+pattern = r'"GET (.*?) HTTP/.*?" (\d{3})'
+url_status_list = re.findall(pattern, "\n".join(logs))
+
+# 404 status kodlarına malik URL-ləri seçin
+error_404_urls = [url for url, status in url_status_list if status == "404"]
+
+# Hər bir URL-in 404 dəfə göründüyünü hesablayın
+url_404_count = Counter(error_404_urls)
+
+# Faylı yazarkən UTF-8 kodlaşdırmasından istifadə edin
+with open("malware_candidates.csv", "w", newline='', encoding="utf-8") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["URL", "404-lərin sayı"])  # Başlıq
+    for url, count in url_404_count.items():
+        writer.writerow([url, count])
+
+print("malware_candidates.csv uğurla yaradıldı.")
+
+
+from bs4 import BeautifulSoup
+
+# Sadə HTML nümunəsi
+html_content = "<html><head><title>Nümunə</title></head><body><p>Salam Dünya!</p></body></html>"
+soup = BeautifulSoup(html_content, "html.parser")
+
+print(soup.title.text)  # Çap edir: Nümunə
+
+# HTML faylını oxuyun
+with open("thread_feed.html", "r") as html_file:
+    soup = BeautifulSoup(html_file, "html.parser")
+
+# Nümunə: Qara siyahıdakı domenləri çıxarın
+blacklist_domains = [tag.text.strip() for tag in soup.find_all("li")]
+
+print("Qara siyahıdakı domenlər:")
+print(blacklist_domains)
+
+# Jurnal faylındakı URL-ləri qara siyahı ilə müqayisə edin
+blacklisted_urls = [url for url, status in url_status_list if any(domain in url for domain in blacklist_domains)]
+
+print("Qara siyahı ilə uyğunlaşan URL-lər:")
+print(blacklisted_urls)
+
+import json
+
+# Qara siyahıya uyğun URL-ləri JSON formatında saxlayın
+alerts = [{"url": url, "status": status, "count": url_404_count.get(url, 0)} for url, status in url_status_list if url in blacklisted_urls]
+
+with open("alert.json", "w") as alert_file:
+    json.dump(alerts, alert_file, indent=4)
+
+print("Alert.json yaradıldı.")
+
+summary_report = {
+    "total_urls": len(url_status_list),
+    "total_404_urls": len(error_404_urls),
+    "blacklisted_urls": len(blacklisted_urls),
+    "blacklisted_urls_details": alerts
+}
+
+with open("summary_report.json", "w") as summary_file:
+    json.dump(summary_report, summary_file, indent=4)
+
+print("Summary_report.json yaradıldı.")
+
