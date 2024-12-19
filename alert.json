@@ -1,0 +1,12 @@
+[
+    {
+        "url": "http://malicious-site.com/page1",
+        "status": "404",
+        "count": 1
+    },
+    {
+        "url": "http://blacklisteddomain.com/page3",
+        "status": "404",
+        "count": 1
+    }
+]
